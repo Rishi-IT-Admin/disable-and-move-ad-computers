@@ -1,0 +1,24 @@
+# Disables and Move the devices.
+
+# Set the paths for the source and destination OUs
+$sourceOU = "OU=Computers,OU=OU1,OU=OU2,DC=Forest,DC=Forest"
+$destinationOU = "OU=Offline Computers,OU=OU3,OU=OU4,DC=Forest,DC=Forest"
+
+# Read the list of computer names from the text file
+$computersToDisable = Get-Content -Path "C:\OfflineDevices.txt"
+
+# Loop through each computer name
+foreach ($computerName in $computersToDisable) {
+    # Get the computer object
+    $computerObject = Get-ADComputer -Filter {Name -eq $computerName} -SearchBase $sourceOU -ErrorAction SilentlyContinue
+
+    if ($computerObject) {
+        # Disable the computer object
+        Disable-ADAccount -Identity $computerObject -Verbose
+
+        # Move the computer object to the destination OU
+        Move-ADObject -Identity $computerObject -TargetPath $destinationOU -Verbose
+    } else {
+        Write-Host "Computer '$computerName' not found in the source OU."
+    }
+}
